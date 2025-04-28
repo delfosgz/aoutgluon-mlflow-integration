@@ -80,3 +80,6 @@ venv.bak/
 
 # Kaggle specific
 kaggle.json
+
+#mlflow
+mlruns/

@@ -193,3 +193,17 @@ def target_comparison_plot(train_df, test_df, target_column):
     plt.title('Train vs Test Target Distribution with CDF and KS Test', fontsize=16)
     plt.tight_layout()
     plt.show()
+    
+def get_error_plot(result):
+    fig = plt.figure(figsize=(10, 6))
+    plt.scatter(result['REAL'], result['PREDICTION'], color='blue', alpha=0.5)
+    plt.plot([result['REAL'].min(), result['REAL'].max()],
+             [result['REAL'].min(), result['REAL'].max()],
+             color='red',
+             linestyle='--',
+             linewidth=2)
+    plt.xlabel('REAL')
+    plt.ylabel('PREDICTION')
+    plt.title('Real vs Predicted Values')
+    plt.close(fig)
+    return fig

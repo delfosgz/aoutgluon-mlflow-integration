@@ -36,7 +36,7 @@ def get_outlier_drop(df,target_var):
 def evaluate_model(y_test,y_test_pred):
     result = pd.DataFrame(index=y_test.index)
     result['REAL'] = y_test
-    result['PRED'] = y_test_pred
+    result['PREDICTION'] = y_test_pred
     
     mse = mean_squared_error(y_test, y_test_pred)
     rmse = np.sqrt(mse)
@@ -50,7 +50,7 @@ def pop_all_ocurrences(d,key):
         d.pop(key, None)
         for sub_dict in d.values():
             pop_all_ocurrences(sub_dict, key)
-            
+           
 
 def get_experiment(experiment_name, experiment_path):
     if mlflow.get_experiment_by_name(experiment_path +experiment_name) is not None:
