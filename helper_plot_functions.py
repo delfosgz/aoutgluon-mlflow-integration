@@ -4,6 +4,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from scipy.stats import chi2_contingency
 from sklearn.preprocessing import LabelEncoder
+from scipy.stats import ks_2samp
 
 def mixed_correlation_heatmap(
     df,
@@ -135,11 +136,60 @@ def get_target_distribution(df, target_var):
     plt.xlabel(target_var)
     plt.ylabel('Frequency')
     plt.show()
+    
+def target_comparison_plot(train_df, test_df, target_column):
+    # Extract target values
+    y_train = train_df[target_column]
+    y_test = test_df[target_column]
 
-def get_outlier_drop(df,target_var):
-    df = df.copy()
-    df['z_scores'] = (df[target_var] - df[target_var].mean()) / df[target_var].std()
-    df['outlier_z'] = np.where(df['z_scores'].abs() > 3, 1, 0)
-    df = df[df['outlier_z'] == 0]
-    df = df.drop(columns=['z_scores', 'outlier_z'])
-    return df
+    # KS test
+    ks_stat, p_value = ks_2samp(y_train, y_test)
+    interpretation = "Similar" if p_value > 0.05 else "Different"
+
+    # Define common bins
+    bins = np.linspace(min(y_train.min(), y_test.min()), max(y_train.max(), y_test.max()), 50)
+
+    # Create plot
+    fig, ax1 = plt.subplots(figsize=(12, 7))
+
+    # Plot histograms (left y-axis) with white borders on the bars
+    ax1.hist(y_train, bins=bins, alpha=0.5, label='Train Histogram', color='royalblue', density=True, edgecolor='white', linewidth=1.5)
+    ax1.hist(y_test, bins=bins, alpha=0.5, label='Test Histogram', color='orange', density=True, edgecolor='white', linewidth=1.5)
+    ax1.set_xlabel(target_column, fontsize=14)
+    ax1.set_ylabel('Density', fontsize=14)
+    ax1.grid(True, alpha=0.3)
+
+    # Twin axis for CDFs (right y-axis)
+    ax2 = ax1.twinx()
+
+    sorted_train = np.sort(y_train)
+    sorted_test = np.sort(y_test)
+
+    cum_train = np.linspace(0, 1, len(sorted_train))
+    cum_test = np.linspace(0, 1, len(sorted_test))
+
+    ax2.plot(sorted_train, cum_train, color='blue', linestyle=':', linewidth=2, label='Train CDF', alpha=0.7)
+    ax2.plot(sorted_test, cum_test, color='darkorange', linestyle=':', linewidth=2, label='Test CDF', alpha=0.7)
+    ax2.set_ylabel('Cumulative Probability', fontsize=14)
+
+    # Combine legends
+    lines_1, labels_1 = ax1.get_legend_handles_labels()
+    lines_2, labels_2 = ax2.get_legend_handles_labels()
+
+    ks_text = f"KS Statistic={ks_stat:.4f}\nP-value={p_value:.4f}\nDistributions: {interpretation}"
+
+    # Floating legend inside plot area
+    ax1.legend(
+        lines_1 + lines_2 + [plt.Line2D([0], [0], color='white')], 
+        labels_1 + labels_2 + [ks_text], 
+        loc='upper right', 
+        bbox_to_anchor=(0.95, 0.95),  # adjust position inside plot
+        fontsize=12,
+        frameon=True,
+        framealpha=1  # solid background
+    )
+
+    # Title
+    plt.title('Train vs Test Target Distribution with CDF and KS Test', fontsize=16)
+    plt.tight_layout()
+    plt.show()
