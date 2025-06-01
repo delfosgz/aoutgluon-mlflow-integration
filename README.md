@@ -1,3 +1,3 @@
 **In progress**
 
-Autogluon model traaking whith mlflow
+Autogluon model traking whith mlflow
